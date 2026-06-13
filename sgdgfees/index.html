@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SGDG League Fees</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #38bdf8;
+            letter-spacing: 0.02em;
+        }
+
+        header p {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            margin-bottom: 16px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            color: #f1f5f9;
+            outline: none;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+        }
+
+        .input-group input:focus {
+            border-color: #38bdf8;
+        }
+
+        .input-group input::-webkit-inner-spin-button,
+        .input-group input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .validation-msg {
+            font-size: 0.8rem;
+            color: #f87171;
+            margin-top: 6px;
+            min-height: 1.2em;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: border-color 0.2s;
+        }
+
+        .checkbox-group:has(input:checked) {
+            border-color: #34d399;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: #34d399;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .checkbox-group span {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #cbd5e1;
+        }
+
+        .results .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .results .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
+        .result-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .result-value.club-funds {
+            color: #38bdf8;
+        }
+
+        .result-value.ace-pot {
+            color: #a78bfa;
+        }
+
+        .result-value.payout {
+            color: #34d399;
+        }
+
+        .result-value.negative {
+            color: #f87171;
+        }
+
+        .result-value.paid {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .result-row .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #334155;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .result-label-wrap {
+            display: flex;
+            align-items: center;
+        }
+
+        .total-collected {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #334155;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+
+        .total-collected .result-label {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .total-collected .result-value {
+            font-size: 1rem;
+            color: #e2e8f0;
+        }
+
+        .note {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-align: center;
+            margin-top: 8px;
+            line-height: 1.5;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Saigon Disc Golf</h1>
+        <p>League Fee Calculator</p>
+    </header>
+
+    <div class="card">
+        <h2>Players</h2>
+        <div class="input-group">
+            <label for="totalPlayers">Total Players</label>
+            <input type="number" id="totalPlayers" inputmode="numeric" min="0" value="0" autocomplete="off">
+        </div>
+        <div class="input-group">
+            <label for="seasonPasses">Season Pass Holders</label>
+            <input type="number" id="seasonPasses" inputmode="numeric" min="0" value="0" autocomplete="off">
+        </div>
+        <div class="validation-msg" id="validationMsg"></div>
+        <label class="checkbox-group" style="margin-top: 16px;">
+            <input type="checkbox" id="winnerPaidCash">
+            <span>Winner was paid in cash already</span>
+        </label>
+    </div>
+
+    <div class="card">
+        <h2>What to do with the money</h2>
+        <div class="total-collected">
+            <span class="result-label">Money Collected on the Day</span>
+            <span class="result-value" id="totalMoney">₫0</span>
+        </div>
+        <div class="results">
+            <div class="result-row">
+                <div class="result-label-wrap">
+                    <span class="step-num">1</span>
+                    <span class="result-label">Add to club funds</span>
+                </div>
+                <span class="result-value club-funds" id="clubFunds">₫0</span>
+            </div>
+            <div class="result-row">
+                <div class="result-label-wrap">
+                    <span class="step-num">2</span>
+                    <span class="result-label">Add <b>from club funds</b> to ace pot</span>
+                </div>
+                <span class="result-value ace-pot" id="acePot">₫0</span>
+            </div>
+            <div class="result-row">
+                <div class="result-label-wrap">
+                    <span class="step-num">3</span>
+                    <span class="result-label">Pay the winner</span>
+                </div>
+                <span class="result-value payout" id="payout">₫0</span>
+            </div>
+        </div>
+    </div>
+
+    <p class="note">Season pass holders are included in Ace Pot &amp; Payout but don't pay the ₫50,000 day fee. Club Funds covers their share.</p>
+
+    <script>
+        const totalPlayersInput = document.getElementById('totalPlayers');
+        const seasonPassesInput = document.getElementById('seasonPasses');
+        const winnerPaidCash = document.getElementById('winnerPaidCash');
+        const validationMsg = document.getElementById('validationMsg');
+        const totalMoneyEl = document.getElementById('totalMoney');
+        const clubFundsEl = document.getElementById('clubFunds');
+        const acePotEl = document.getElementById('acePot');
+        const payoutEl = document.getElementById('payout');
+
+        function formatVND(amount) {
+            const prefix = amount < 0 ? '-₫' : '₫';
+            return prefix + Math.abs(amount).toLocaleString('en');
+        }
+
+        function calculate() {
+            const players = Math.max(0, parseInt(totalPlayersInput.value) || 0);
+            const passes = Math.max(0, parseInt(seasonPassesInput.value) || 0);
+            const cashPaid = winnerPaidCash.checked;
+
+            if (passes > players) {
+                validationMsg.textContent = 'Season passes can\'t exceed total players';
+                totalMoneyEl.textContent = '₫0';
+                clubFundsEl.textContent = '₫0';
+                clubFundsEl.classList.remove('negative');
+                acePotEl.textContent = '₫0';
+                payoutEl.textContent = '₫0';
+                payoutEl.classList.remove('paid');
+                return;
+            }
+
+            validationMsg.textContent = '';
+
+            const totalMoney = 50000 * (players - passes);
+            const acePot = players * 10000;
+            const payoutAmount = players * 20000;
+
+            // If winner was paid cash, that money is already gone from the collected cash
+            const addToClubFunds = cashPaid ? totalMoney - payoutAmount : totalMoney;
+
+            totalMoneyEl.textContent = formatVND(totalMoney);
+            clubFundsEl.textContent = formatVND(addToClubFunds);
+            clubFundsEl.classList.toggle('negative', addToClubFunds < 0);
+            acePotEl.textContent = formatVND(acePot);
+
+            if (cashPaid) {
+                payoutEl.textContent = 'Paid in cash \u2713';
+                payoutEl.classList.add('paid');
+            } else {
+                payoutEl.textContent = formatVND(payoutAmount);
+                payoutEl.classList.remove('paid');
+            }
+        }
+
+        totalPlayersInput.addEventListener('input', calculate);
+        seasonPassesInput.addEventListener('input', calculate);
+        winnerPaidCash.addEventListener('change', calculate);
+
+        // Select all text on focus for easy editing
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', () => input.select());
+        });
+
+        calculate();
+    </script>
+</body>
+</html>
