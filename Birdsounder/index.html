@@ -134,7 +134,15 @@
 
     #progress {
       font-size: 0.72rem; color: #5a8a4a; text-transform: uppercase;
-      letter-spacing: 0.1em; margin-bottom: 16px; text-align: center;
+      letter-spacing: 0.1em; margin-bottom: 10px; text-align: center;
+    }
+    #timer-bar-wrap {
+      width: 100%; background: #1a2a1a; border-radius: 4px;
+      height: 6px; margin-bottom: 16px; overflow: hidden;
+    }
+    #timer-bar {
+      height: 100%; width: 0%; background: #8fbe5a;
+      border-radius: 4px; transition: none;
     }
     #status {
       font-size: 1.05rem; color: #9ac878; text-align: center;
@@ -146,7 +154,14 @@
     }
     #credit {
       font-size: 0.73rem; color: #4a6a4a; text-align: center;
-      min-height: 1.1em; margin-bottom: 20px;
+      min-height: 1.1em; margin-bottom: 12px;
+    }
+    #sonogram {
+      text-align: center; margin-bottom: 16px; min-height: 0;
+    }
+    #sonogram img {
+      max-width: 100%; border-radius: 6px; opacity: 0.85;
+      border: 1px solid #3a5a2a;
     }
     #countdown {
       font-size: 0.95rem; color: #6a9a4a; text-align: center;
@@ -236,6 +251,14 @@
         <input type="number" id="count-input" min="1" max="200" value="10" inputmode="numeric">
       </div>
     </div>
+    <div class="form-group">
+      <label for="sound-type-select">Sound type</label>
+      <select id="sound-type-select">
+        <option value="" selected>All sounds</option>
+        <option value="song">Songs only</option>
+        <option value="call">Calls only</option>
+      </select>
+    </div>
   </div>
 
   <hr class="divider">
@@ -266,10 +289,12 @@
 
   <button class="link-btn back-btn" id="btn-back">&larr; New Session</button>
 
-  <div id="progress"></div>
   <div id="status">Loading&hellip;</div>
+  <div id="progress"></div>
   <div id="bird-name"></div>
   <div id="credit"></div>
+  <div id="sonogram"></div>
+  <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
   <div id="countdown"></div>
 
   <button id="btn-start" style="display:none">&#x25B6; Start</button>
@@ -301,8 +326,9 @@ const elUploadFilename = document.getElementById('upload-filename');
 const elDateInput      = document.getElementById('date-input');
 const elFilterSection  = document.getElementById('filter-section');
 const elPoolInfo       = document.getElementById('pool-info');
-const elCategorySelect = document.getElementById('category-select');
-const elCountInput     = document.getElementById('count-input');
+const elCategorySelect  = document.getElementById('category-select');
+const elSoundTypeSelect = document.getElementById('sound-type-select');
+const elCountInput      = document.getElementById('count-input');
 const elLocationSelect = document.getElementById('location-select');
 const elSettingsToggle = document.getElementById('settings-toggle');
 const elSettingsBody   = document.getElementById('settings-body');
@@ -319,6 +345,8 @@ const elProgress      = document.getElementById('progress');
 const elStatus        = document.getElementById('status');
 const elBirdName      = document.getElementById('bird-name');
 const elCredit        = document.getElementById('credit');
+const elTimerBar      = document.getElementById('timer-bar');
+const elSonogram      = document.getElementById('sonogram');
 const elCountdown     = document.getElementById('countdown');
 const elBtnStart      = document.getElementById('btn-start');
 const elBtnPlayPause  = document.getElementById('btn-playpause');
@@ -340,6 +368,7 @@ let prefetchData     = null;  // {promise, forIndex}
 let pendingFirstBird = null;
 let countdownTimer   = null;
 let clipTimer        = null;
+let timerRaf         = null;
 let isPaused         = false;
 let advancing        = false;
 
@@ -349,8 +378,35 @@ var recordingQueues = new Map();
 function pickRecording(birdData) {
   var key = birdData.sciName;
   if (!recordingQueues.has(key) || recordingQueues.get(key).length === 0) {
-    // Refill and shuffle the full recordings list
-    recordingQueues.set(key, shuffle(birdData.recordings.slice()));
+    // Group by (quality, also-count) bucket, shuffle within each bucket,
+    // then concatenate in order: A+0bg, A+1bg, A+2bg…, B+0bg, B+1bg…
+    // so cleaner recordings within each quality tier come first,
+    // but recordings with the same quality+noise level play randomly.
+    var QUALITY_ORDER = ['A', 'B', 'C', 'D', 'E', '?'];
+    var buckets = {};
+    birdData.recordings.forEach(function(rec) {
+      var q    = rec.quality || '?';
+      var also = Array.isArray(rec.also) ? rec.also.filter(Boolean).length : 0;
+      var k    = q + '|' + also;
+      if (!buckets[k]) buckets[k] = { q: q, also: also, recs: [] };
+      buckets[k].recs.push(rec);
+    });
+
+    var bucketList = Object.values(buckets);
+    bucketList.sort(function(a, b) {
+      var qi = QUALITY_ORDER.indexOf(a.q === '?' ? '?' : a.q);
+      var qj = QUALITY_ORDER.indexOf(b.q === '?' ? '?' : b.q);
+      if (qi < 0) qi = QUALITY_ORDER.length;
+      if (qj < 0) qj = QUALITY_ORDER.length;
+      if (qi !== qj) return qi - qj;
+      return a.also - b.also;
+    });
+
+    var sorted = [];
+    bucketList.forEach(function(b) { sorted = sorted.concat(shuffle(b.recs)); });
+
+    // Reverse so .pop() draws from the front (best bucket first)
+    recordingQueues.set(key, sorted.reverse());
   }
   return recordingQueues.get(key).pop();
 }
@@ -445,7 +501,7 @@ function buildPool(requested) {
   const cat = elCategorySelect.value;
 
   if (cat === 'all') {
-    return shuffle(classified.all.slice());
+    return shuffle(classified.all.slice()).slice(0, requested);
   }
 
   if (cat === 'common') {
@@ -531,15 +587,21 @@ async function fetchBirdXC(birdMeta) {
   const genus = parts[0];
   const sp    = parts[1] || '';
 
-  // Tag syntax characters (:, +) must stay literal in the URL
+  // Fetch all three query tiers, merge, de-duplicate by id, then sort:
+  //   1. Quality: A > B > C > D > E (no-letter last)
+  //   2. Fewest background species in "also" array
+  const QUALITY_RANK = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+  const soundType = elSoundTypeSelect ? elSoundTypeSelect.value : '';
+  const typeFilter = soundType ? '+type:' + soundType : '';
   const queries = [
-    'gen:' + genus + '+sp:' + sp + '+type:song+grp:birds+q:A',
-    'gen:' + genus + '+sp:' + sp + '+type:song+grp:birds',
-    'gen:' + genus + '+sp:' + sp + '+grp:birds',
+    'gen:' + genus + '+sp:' + sp + typeFilter + '+grp:birds',
   ];
 
+  var seen = new Set();
+  var allRecs = [];
+
   for (const q of queries) {
-  const url = base + '?query=' + q + '&key=' + encodeURIComponent(key) + '&per_page=500';
+    const url = base + '?query=' + q + '&key=' + encodeURIComponent(key) + '&per_page=500';
     let resp;
     try {
       resp = await fetch(url);
@@ -551,17 +613,38 @@ async function fetchBirdXC(birdMeta) {
       throw new Error('HTTP ' + resp.status + ': ' + body.slice(0, 120));
     }
     const data = await resp.json();
-    if (data.recordings && data.recordings.length > 0) {
-      const recordings = data.recordings.map(function(rec) {
-        return {
-          audioUrl: rec.file.startsWith('//') ? 'https:' + rec.file : rec.file,
-          credit:   'Recorded by ' + rec.rec + ' \u00b7 ' + rec.cnt,
-        };
+    if (data.recordings) {
+      data.recordings.forEach(function(rec) {
+        if (!seen.has(rec.id)) {
+          seen.add(rec.id);
+          allRecs.push(rec);
+        }
       });
-      return Object.assign({}, birdMeta, { recordings: recordings });
     }
   }
-  return null; // no recordings found
+
+  if (allRecs.length === 0) return null;
+
+  allRecs.sort(function(a, b) {
+    var qa = QUALITY_RANK[a.q] !== undefined ? QUALITY_RANK[a.q] : 9;
+    var qb = QUALITY_RANK[b.q] !== undefined ? QUALITY_RANK[b.q] : 9;
+    if (qa !== qb) return qa - qb;
+    var aa = Array.isArray(a.also) ? a.also.filter(Boolean).length : 0;
+    var ab = Array.isArray(b.also) ? b.also.filter(Boolean).length : 0;
+    return aa - ab;
+  });
+
+  const recordings = allRecs.map(function(rec) {
+    return {
+      audioUrl: rec.file.startsWith('//') ? 'https:' + rec.file : rec.file,
+      sonogram: rec.sono && rec.sono.med ? (rec.sono.med.startsWith('//') ? 'https:' + rec.sono.med : rec.sono.med) : null,
+      quality:  rec.q || '?',
+      credit:   'Recorded by ' + rec.rec + ' \u00b7 ' + rec.cnt + ' (\u2605' + (rec.q || '?') + ')',
+      length:   (function(s) { var p = (s||'').split(':'); return p.length === 2 ? parseInt(p[0],10)*60 + parseFloat(p[1]) : parseFloat(s) || 0; })(rec['length']),
+    };
+  });
+
+  return Object.assign({}, birdMeta, { recordings: recordings });
 }
 
 // =====================================================================
@@ -580,46 +663,43 @@ async function loadSession() {
   }
 
   const requested  = Math.max(1, parseInt(elCountInput.value) || 10);
-  selectedPool     = buildPool(requested);
-  if (selectedPool.length === 0) { elSetupError.textContent = 'No birds available.'; return; }
+  // Request 2 extra so silent skips don't leave us short
+  const candidates = buildPool(requested + 5);
+  if (candidates.length === 0) { elSetupError.textContent = 'No birds available.'; return; }
   playIndex        = 0;
   prefetchData     = null;
   pendingFirstBird = null;
   advancing        = false;
-  recordingQueues  = new Map(); // clear queues for fresh session
+  recordingQueues  = new Map();
 
-  // Switch to play screen
+  // Switch to play screen early so the user sees loading progress
   elScreenSetup.style.display = 'none';
   elScreenPlay.style.display  = '';
   elProgress.textContent      = '';
   elBirdName.textContent      = '';
   elCredit.textContent        = '';
+  elSonogram.innerHTML        = '';
+  elTimerBar.style.width      = '0%';
+  cancelAnimationFrame(timerRaf);
   elCountdown.textContent     = '';
   elPlayError.textContent     = '';
   elBtnPlayPause.disabled     = true;
   elBtnSkip.disabled          = true;
   elBtnStart.style.display    = 'none';
-  elStatus.textContent        = 'Loading first bird\u2026';
+  elStatus.textContent        = 'Finding birds\u2026';
 
-  // Fetch bird[0]; simultaneously start prefetch for bird[1]
-  var fetchFirst = fetchBirdXC(selectedPool[0]).catch(function() { return null; });
-  if (selectedPool.length > 1) {
-    prefetchData = {
-      promise:  fetchBirdXC(selectedPool[1]).catch(function() { return null; }),
-      forIndex: 1,
-    };
-  }
+  // Pre-fetch all candidates concurrently, silently drop those with no recordings
+  const fetched = await Promise.all(
+    candidates.map(function(b) { return fetchBirdXC(b).catch(function() { return null; }); })
+  );
+  selectedPool = fetched.filter(Boolean).slice(0, requested);
 
-  var firstBird = await fetchFirst;
-
-  if (!firstBird) {
-    elStatus.textContent    = 'Could not load first bird.';
-    elPlayError.textContent = 'No recordings found for "' + selectedPool[0].commonName + '". Click Skip to try the next one.';
-    elBtnSkip.disabled = false;
+  if (selectedPool.length === 0) {
+    elStatus.textContent    = 'No recordings found.';
+    elPlayError.textContent = 'None of the selected birds have available recordings. Try a different category or location.';
     return;
   }
 
-  pendingFirstBird         = firstBird;
   elStatus.textContent     = selectedPool.length + ' bird' + (selectedPool.length !== 1 ? 's' : '') + ' ready.';
   elBtnStart.style.display = '';
 }
@@ -642,11 +722,35 @@ function playBird(birdData) {
   elBtnSkip.disabled         = false;
   isPaused = false;
 
+  if (recording.sonogram) {
+    var img = document.createElement('img');
+    img.src = recording.sonogram;
+    img.alt = '';
+    elSonogram.innerHTML = '';
+    elSonogram.appendChild(img);
+  } else {
+    elSonogram.innerHTML = '';
+  }
+
   player.src    = recording.audioUrl;
   player.volume = parseFloat(elVolume.value);
   player.play().catch(function(err) {
     elPlayError.textContent = 'Playback error: ' + err.message;
   });
+
+  // Animate progress bar — prefer metadata length, fall back to player.duration
+  var recDur = recording.length || 0;
+  elTimerBar.style.width = '0%';
+  cancelAnimationFrame(timerRaf);
+  (function tick() {
+    if (!isPaused) {
+      var dur = recDur > 0 ? recDur : (isFinite(player.duration) ? player.duration : 0);
+      if (dur > 0) {
+        elTimerBar.style.width = (player.currentTime / dur * 100) + '%';
+      }
+    }
+    timerRaf = requestAnimationFrame(tick);
+  })();
 
   clearTimeout(clipTimer);
   clipTimer = setTimeout(function() {
@@ -661,10 +765,13 @@ function playBird(birdData) {
 }
 
 function revealBird(birdData, recording) {
+  cancelAnimationFrame(timerRaf);
+  elTimerBar.style.width = '100%';
   elBtnPlayPause.disabled = true;
   elStatus.textContent    = 'That was:';
   elBirdName.textContent  = birdData.commonName;
   elCredit.textContent    = recording.credit;
+  // sonogram already visible from playBird — leave it in place
 
   if ('speechSynthesis' in window) {
     var utt = new SpeechSynthesisUtterance(birdData.commonName);
@@ -675,51 +782,20 @@ function revealBird(birdData, recording) {
   startCountdown(getPauseDuration(), advanceToNext);
 }
 
-async function advanceToNext() {
+function advanceToNext() {
   if (advancing) return;
   advancing = true;
   elBtnSkip.disabled      = true;
   elBtnPlayPause.disabled = true;
 
-  // Advance index; reshuffle on wrap-around
+  // Advance index; reshuffle pool on wrap-around
   var nextIndex = (playIndex + 1) % selectedPool.length;
-  if (nextIndex === 0) {
-    shuffle(selectedPool);
-    prefetchData = null;
-  }
+  if (nextIndex === 0) shuffle(selectedPool);
   playIndex = nextIndex;
 
-  // Use prefetched data if available for this index
-  var bird = null;
-  if (prefetchData && prefetchData.forIndex === playIndex) {
-    elStatus.textContent = 'Loading\u2026';
-    bird = await prefetchData.promise;
-    prefetchData = null;
-  }
-  if (!bird) {
-    elStatus.textContent = 'Loading\u2026';
-    bird = await fetchBirdXC(selectedPool[playIndex]).catch(function() { return null; });
-  }
-
-  // Always start prefetch for the bird after this one
-  var afterIndex = (playIndex + 1) % selectedPool.length;
-  if (!prefetchData || prefetchData.forIndex !== afterIndex) {
-    prefetchData = {
-      promise:  fetchBirdXC(selectedPool[afterIndex]).catch(function() { return null; }),
-      forIndex: afterIndex,
-    };
-  }
-
   advancing = false;
-
-  if (!bird) {
-    elPlayError.textContent = 'No recordings for "' + selectedPool[playIndex].commonName + '". Skipping\u2026';
-    setTimeout(advanceToNext, 1500);
-    return;
-  }
-
   elPlayError.textContent = '';
-  playBird(bird);
+  playBird(selectedPool[playIndex]);
 }
 
 function startCountdown(seconds, callback) {
@@ -844,6 +920,9 @@ elBtnBack.addEventListener('click', function() {
   prefetchData     = null;
   pendingFirstBird = null;
   advancing        = false;
+  elSonogram.innerHTML        = '';
+  elTimerBar.style.width      = '0%';
+  cancelAnimationFrame(timerRaf);
   elScreenPlay.style.display  = 'none';
   elScreenSetup.style.display = '';
   updatePoolInfo();
@@ -852,20 +931,7 @@ elBtnBack.addEventListener('click', function() {
 elBtnStart.addEventListener('click', function() {
   elBtnStart.style.display = 'none';
   elPlayError.textContent  = '';
-  if (pendingFirstBird) {
-    var bird     = pendingFirstBird;
-    pendingFirstBird = null;
-    // Ensure prefetch for bird[1] is running
-    if (selectedPool.length > 1 && (!prefetchData || prefetchData.forIndex !== 1)) {
-      prefetchData = {
-        promise:  fetchBirdXC(selectedPool[1]).catch(function() { return null; }),
-        forIndex: 1,
-      };
-    }
-    playBird(bird);
-  } else {
-    advanceToNext();
-  }
+  playBird(selectedPool[0]);
 });
 
 elBtnPlayPause.addEventListener('click', function() {
