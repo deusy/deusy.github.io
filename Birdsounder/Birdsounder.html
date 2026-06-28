@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Birdsounder</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #1a2a1a;
+      color: #d4e8c2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 32px 24px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #8fbe5a;
+      margin-bottom: 24px;
+      letter-spacing: 0.04em;
+    }
+
+    .card {
+      background: #243324;
+      border-radius: 16px;
+      padding: 32px 36px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    /* ── Upload area ──────────────────────── */
+    .upload-area {
+      border: 2px dashed #3a5a2a;
+      border-radius: 10px;
+      padding: 28px 20px;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 20px;
+      user-select: none;
+    }
+    .upload-area:hover, .upload-area.drag-over {
+      border-color: #8fbe5a;
+      background: #1f2d1f;
+    }
+    .upload-area.loaded { border-color: #8fbe5a; border-style: solid; }
+    .upload-icon { font-size: 2rem; margin-bottom: 6px; }
+    .upload-text { font-size: 0.88rem; color: #8ab870; }
+    .upload-text small { color: #5a7a4a; }
+    .upload-filename { font-size: 0.85rem; color: #8fbe5a; font-weight: 600; margin-top: 6px; }
+
+    /* ── Form elements ────────────────────── */
+    .form-group { margin-bottom: 14px; text-align: left; }
+    .form-group label {
+      display: block;
+      font-size: 0.73rem;
+      color: #6a9a4a;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 5px;
+    }
+    .form-group input[type=date],
+    .form-group input[type=number],
+    .form-group input[type=text],
+    .form-group select {
+      width: 100%;
+      background: #1a2a1a;
+      border: 1px solid #3a5a2a;
+      border-radius: 7px;
+      color: #d4e8c2;
+      padding: 9px 12px;
+      font-size: 0.93rem;
+      font-family: inherit;
+    }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #8fbe5a; }
+    input[type=date]::-webkit-calendar-picker-indicator {
+      filter: invert(0.65) sepia(1) hue-rotate(60deg);
+      cursor: pointer;
+    }
+    select option { background: #1a2a1a; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* ── Pool info ────────────────────────── */
+    #pool-info {
+      background: #1a2a1a;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      color: #6a9a4a;
+      margin-bottom: 14px;
+      text-align: left;
+      line-height: 1.7;
+    }
+    #pool-info strong { color: #8fbe5a; }
+
+    /* ── Misc ─────────────────────────────── */
+    .divider { border: none; border-top: 1px solid #2e4a2e; margin: 16px 0; }
+
+    .link-btn {
+      background: none; border: none; color: #5a7a4a;
+      font-size: 0.8rem; cursor: pointer; text-decoration: underline;
+      padding: 0; font-family: inherit;
+    }
+    .link-btn:hover { color: #8fbe5a; }
+
+    .settings-body { margin-top: 12px; }
+
+    .slider-row { display: flex; align-items: center; gap: 10px; }
+    .slider-row span { font-size: 0.88rem; color: #d4e8c2; min-width: 28px; }
+    input[type=range] { accent-color: #8fbe5a; flex: 1; }
+
+    .btn-primary {
+      display: block; width: 100%; padding: 13px;
+      background: #4a7a3a; color: #d4e8c2; border: none; border-radius: 9px;
+      font-size: 1rem; font-family: inherit; cursor: pointer; font-weight: 600;
+      letter-spacing: 0.02em; transition: background 0.15s; margin-top: 8px;
+    }
+    .btn-primary:hover { background: #5a9a4a; }
+    .btn-primary:disabled { background: #2a3a2a; color: #4a6a4a; cursor: default; }
+
+    .error-msg { color: #e87070; font-size: 0.83rem; margin-top: 10px; min-height: 1.2em; }
+
+    /* ── Play screen ──────────────────────── */
+    .back-btn { display: block; margin-bottom: 20px; }
+
+    #progress {
+      font-size: 0.72rem; color: #5a8a4a; text-transform: uppercase;
+      letter-spacing: 0.1em; margin-bottom: 16px; text-align: center;
+    }
+    #status {
+      font-size: 1.05rem; color: #9ac878; text-align: center;
+      margin-bottom: 8px; min-height: 1.5em;
+    }
+    #bird-name {
+      font-size: 1.9rem; font-weight: 700; color: #8fbe5a;
+      text-align: center; min-height: 2.5rem; margin-bottom: 6px;
+    }
+    #credit {
+      font-size: 0.73rem; color: #4a6a4a; text-align: center;
+      min-height: 1.1em; margin-bottom: 20px;
+    }
+    #countdown {
+      font-size: 0.95rem; color: #6a9a4a; text-align: center;
+      min-height: 1.4em; margin-bottom: 20px;
+    }
+    #btn-start {
+      display: block; width: 100%; padding: 14px;
+      background: #4a7a3a; color: #d4e8c2; border: none; border-radius: 9px;
+      font-size: 1.05rem; font-family: inherit; cursor: pointer; font-weight: 600;
+      transition: background 0.15s; margin-bottom: 16px;
+    }
+    #btn-start:hover { background: #5a9a4a; }
+
+    .controls {
+      display: flex; gap: 12px; justify-content: center;
+      align-items: center; flex-wrap: wrap;
+    }
+    .btn-control {
+      background: #3a5a2a; color: #d4e8c2; border: none; border-radius: 8px;
+      padding: 10px 22px; font-size: 0.93rem; font-family: inherit;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .btn-control:hover { background: #4a7a3a; }
+    .btn-control:disabled { background: #2a3a2a; color: #5a7a4a; cursor: default; }
+
+    .volume-wrap { display: flex; align-items: center; gap: 8px; color: #6a9a4a; }
+    .volume-wrap input { width: 80px; }
+
+    .or-divider {
+      display: flex; align-items: center; gap: 10px;
+      margin: 0 0 16px 0; color: #4a6a4a; font-size: 0.8rem;
+    }
+    .or-divider::before, .or-divider::after {
+      content: ''; flex: 1; border-top: 1px solid #2e4a2e;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 24px 20px; }
+      #bird-name { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Birdsounder</h1>
+
+<!-- ── Setup Screen ──────────────────────────────────────── -->
+<div id="screen-setup" class="card">
+
+  <div class="form-group">
+    <label for="location-select">Choose a saved location</label>
+    <select id="location-select">
+      <option value="">&#x2015; select a location &#x2015;</option>
+    </select>
+  </div>
+
+  <div class="or-divider"><span>or upload your own</span></div>
+
+  <div id="upload-area" class="upload-area">
+    <div class="upload-icon">&#x1F426;</div>
+    <div id="upload-text" class="upload-text">
+      Drop eBird barchart .txt here<br><small>or click to browse</small>
+    </div>
+    <div class="upload-filename" id="upload-filename" style="display:none"></div>
+    <input type="file" id="file-input" accept=".txt"
+           style="position:absolute;opacity:0;pointer-events:none;width:0;height:0">
+  </div>
+
+  <div class="form-group">
+    <label for="date-input">Date</label>
+    <input type="date" id="date-input">
+  </div>
+
+  <div id="filter-section" style="display:none">
+    <div id="pool-info"></div>
+    <div class="two-col">
+      <div class="form-group">
+        <label for="category-select">Category</label>
+        <select id="category-select">
+          <option value="common">Common only</option>
+          <option value="commonAndUncommon" selected>Common &amp; Uncommon</option>
+          <option value="all">All present birds</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="count-input">Number of birds</label>
+        <input type="number" id="count-input" min="1" max="200" value="10" inputmode="numeric">
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <button class="link-btn" id="settings-toggle">&#x2699; API Settings</button>
+  <div id="settings-body" class="settings-body" style="display:none">
+    <div class="form-group" style="margin-top:12px">
+      <label for="api-key-input">Xeno-Canto API Key</label>
+      <input type="text" id="api-key-input" placeholder="Paste your key here&hellip;"
+             autocomplete="off" spellcheck="false">
+    </div>
+    <div class="form-group">
+      <label>Pause between birds</label>
+      <div class="slider-row">
+        <input type="range" id="pause-slider" min="1" max="10" step="1" value="3">
+        <span id="pause-label">3s</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="btn-load" disabled>Load &amp; Start &#x25B6;</button>
+  <div class="error-msg" id="setup-error"></div>
+
+</div>
+
+<!-- ── Play Screen ───────────────────────────────────────── -->
+<div id="screen-play" class="card" style="display:none">
+
+  <button class="link-btn back-btn" id="btn-back">&larr; New Session</button>
+
+  <div id="progress"></div>
+  <div id="status">Loading&hellip;</div>
+  <div id="bird-name"></div>
+  <div id="credit"></div>
+  <div id="countdown"></div>
+
+  <button id="btn-start" style="display:none">&#x25B6; Start</button>
+
+  <div class="controls">
+    <button class="btn-control" id="btn-playpause" disabled>Pause</button>
+    <button class="btn-control" id="btn-skip" disabled>Skip</button>
+    <div class="volume-wrap">
+      <span>&#x1F50A;</span>
+      <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
+    </div>
+  </div>
+
+  <div class="error-msg" id="play-error"></div>
+
+</div>
+
+<audio id="player"></audio>
+
+<script>
+// =====================================================================
+// DOM references
+// =====================================================================
+
+const elUploadArea     = document.getElementById('upload-area');
+const elFileInput      = document.getElementById('file-input');
+const elUploadText     = document.getElementById('upload-text');
+const elUploadFilename = document.getElementById('upload-filename');
+const elDateInput      = document.getElementById('date-input');
+const elFilterSection  = document.getElementById('filter-section');
+const elPoolInfo       = document.getElementById('pool-info');
+const elCategorySelect = document.getElementById('category-select');
+const elCountInput     = document.getElementById('count-input');
+const elLocationSelect = document.getElementById('location-select');
+const elSettingsToggle = document.getElementById('settings-toggle');
+const elSettingsBody   = document.getElementById('settings-body');
+const elApiKeyInput    = document.getElementById('api-key-input');
+const elPauseSlider    = document.getElementById('pause-slider');
+const elPauseLabel     = document.getElementById('pause-label');
+const elBtnLoad        = document.getElementById('btn-load');
+const elSetupError     = document.getElementById('setup-error');
+
+const elScreenSetup   = document.getElementById('screen-setup');
+const elScreenPlay    = document.getElementById('screen-play');
+const elBtnBack       = document.getElementById('btn-back');
+const elProgress      = document.getElementById('progress');
+const elStatus        = document.getElementById('status');
+const elBirdName      = document.getElementById('bird-name');
+const elCredit        = document.getElementById('credit');
+const elCountdown     = document.getElementById('countdown');
+const elBtnStart      = document.getElementById('btn-start');
+const elBtnPlayPause  = document.getElementById('btn-playpause');
+const elBtnSkip       = document.getElementById('btn-skip');
+const elVolume        = document.getElementById('volume');
+const elPlayError     = document.getElementById('play-error');
+
+const player = document.getElementById('player');
+
+// =====================================================================
+// App state
+// =====================================================================
+
+let parsedBirds      = [];    // [{commonName, sciName, values[48]}]
+let classified       = null;  // {common, commonAndUncommon, all}
+let selectedPool     = [];    // shuffled subset for this session
+let playIndex        = 0;
+let prefetchData     = null;  // {promise, forIndex}
+let pendingFirstBird = null;
+let countdownTimer   = null;
+let clipTimer        = null;
+let isPaused         = false;
+let advancing        = false;
+
+// Per-bird shuffled queues so every recording is heard before any repeats
+var recordingQueues = new Map();
+
+function pickRecording(birdData) {
+  var key = birdData.sciName;
+  if (!recordingQueues.has(key) || recordingQueues.get(key).length === 0) {
+    // Refill and shuffle the full recordings list
+    recordingQueues.set(key, shuffle(birdData.recordings.slice()));
+  }
+  return recordingQueues.get(key).pop();
+}
+
+// =====================================================================
+// Utilities
+// =====================================================================
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function randomItem(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function getApiKey() {
+  return (localStorage.getItem('xcApiKey') || '').trim();
+}
+
+function getPauseDuration() {
+  return parseInt(elPauseSlider.value, 10);
+}
+
+// =====================================================================
+// eBird barchart parsing
+//
+// Format: 48 frequency columns per species (4 ~weekly bins x 12 months)
+// Species lines: "Common Name (<em class="sci">Genus species</em>)\t[vals...]"
+// =====================================================================
+
+function parseEbirdFile(text) {
+  const lines = text.replace(/\r/g, '').split('\n');
+  const birds = [];
+
+  for (const line of lines) {
+    const match = line.match(/^(.+?)\s*\(<em class="sci">(.*?)<\/em>\)\t(.+)/);
+    if (!match) continue;
+
+    const commonName = match[1].trim();
+    const sciName    = match[2].trim();
+    const values     = match[3].split('\t').map(v => parseFloat(v) || 0);
+
+    // Skip unresolved, family-level, hybrid, and slash entries
+    if (/ sp\./.test(sciName))                                    continue;
+    if (sciName.includes('/'))                                    continue;
+    if (/ [xX] /.test(commonName) || commonName.includes(' x ')) continue;
+    if (commonName.includes(' x ') || commonName.includes('\u00d7')) continue;
+    if (sciName.split(' ').filter(Boolean).length < 2)            continue;
+
+    birds.push({ commonName, sciName, values });
+  }
+
+  return birds;
+}
+
+// Maps a YYYY-MM-DD date to a 0-47 column index
+// 4 bins per month: days 1-7 = bin 0, 8-14 = 1, 15-21 = 2, 22+ = 3
+function dateToColumnIndex(dateStr) {
+  const [, month, day] = dateStr.split('-').map(Number);
+  const bin = Math.min(3, Math.floor((day - 1) / 7));
+  return (month - 1) * 4 + bin;
+}
+
+// Rank birds by frequency; split into thirds (Common / Uncommon / Rare)
+function classifyBirds(birds, colIdx) {
+  // Only include birds with a non-zero frequency on this date
+  const withFreq = birds
+    .map(b => ({ ...b, freq: b.values[colIdx] != null ? b.values[colIdx] : 0 }))
+    .filter(b => b.freq > 0)
+    .sort((a, b) => b.freq - a.freq);
+
+  const n = withFreq.length;
+  // Top 15% = Common, next 15% (15-30%) = Uncommon, rest = Rare
+  const nCommon = Math.max(1, Math.ceil(n * 0.15));
+  const nCommonAndUncommon = Math.max(nCommon, Math.ceil(n * 0.30));
+  return {
+    common:            withFreq.slice(0, nCommon),
+    commonAndUncommon: withFreq.slice(0, nCommonAndUncommon),
+    all:               withFreq,
+  };
+}
+
+// Returns an ordered pool: primary category first, then spill into next tier(s).
+// Birds are shuffled within each tier before combining so the order is random.
+function buildPool(requested) {
+  if (!classified) return [];
+  const cat = elCategorySelect.value;
+
+  if (cat === 'all') {
+    return shuffle(classified.all.slice());
+  }
+
+  if (cat === 'common') {
+    const primary   = shuffle(classified.common.slice());
+    const spill     = shuffle(
+      classified.commonAndUncommon.filter(b => !classified.common.includes(b))
+    );
+    const spillRare = shuffle(
+      classified.all.filter(b => !classified.commonAndUncommon.includes(b))
+    );
+    return primary.concat(spill).concat(spillRare).slice(0, requested);
+  }
+
+  // commonAndUncommon
+  const primary = shuffle(classified.commonAndUncommon.slice());
+  const spill   = shuffle(
+    classified.all.filter(b => !classified.commonAndUncommon.includes(b))
+  );
+  return primary.concat(spill).slice(0, requested);
+}
+
+function getCurrentPool() {
+  if (!classified) return [];
+  const cat = elCategorySelect.value;
+  if (cat === 'common')            return classified.common;
+  if (cat === 'commonAndUncommon') return classified.commonAndUncommon;
+  return classified.all;
+}
+
+function updatePoolInfo() {
+  if (!classified) { elPoolInfo.innerHTML = ''; return; }
+
+  const pool      = getCurrentPool();
+  const n         = classified.all.length;
+  const nCommon   = classified.common.length;
+  const nUncommon = classified.commonAndUncommon.length - nCommon;
+  const nRare     = n - classified.commonAndUncommon.length;
+  const requested = parseInt(elCountInput.value) || 10;
+  const willUse   = Math.min(requested, classified.all.length);
+
+  // Work out how many spill into the next tier(s)
+  const cat = elCategorySelect.value;
+  let spillNote = '';
+  if (cat === 'common' && requested > nCommon && nCommon > 0) {
+    const fromUncommon = Math.min(requested - nCommon, nUncommon);
+    const fromRare     = Math.max(0, requested - nCommon - nUncommon);
+    spillNote = ' <span style="color:#8fbe5a">(+' + fromUncommon + ' uncommon' +
+      (fromRare > 0 ? ', +' + fromRare + ' rare' : '') + ')</span>';
+  } else if (cat === 'commonAndUncommon' && requested > nCommon + nUncommon) {
+    const fromRare = Math.min(requested - nCommon - nUncommon, nRare);
+    if (fromRare > 0) spillNote = ' <span style="color:#8fbe5a">(+' + fromRare + ' rare)</span>';
+  }
+
+  const [, month, day] = elDateInput.value.split('-').map(Number);
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  elPoolInfo.innerHTML =
+    '<strong>' + n + '</strong> species present around ' + MONTHS[month - 1] + ' ' + day + ' &nbsp;&middot;&nbsp; ' +
+    '<span title="Top 15% by frequency">Common: ' + nCommon + '</span> &middot; ' +
+    '<span title="15\u201330% by frequency">Uncommon: ' + nUncommon + '</span> &middot; ' +
+    '<span title="Bottom 70% by frequency">Rare: ' + nRare + '</span><br>' +
+    'Will select <strong>' + willUse + '</strong> birds' + spillNote;
+
+  const hasKey = getApiKey().length > 0;
+  elBtnLoad.disabled = classified.all.length === 0 || !hasKey;
+
+  if (!hasKey) {
+    elSetupError.textContent = 'Enter your Xeno-Canto API key in API Settings below.';
+    elSettingsBody.style.display = '';
+  } else {
+    elSetupError.textContent = '';
+  }
+}
+
+// =====================================================================
+// Xeno-Canto API  (query by scientific name: gen:Genus+sp:species)
+// =====================================================================
+
+async function fetchBirdXC(birdMeta) {
+  const key   = getApiKey();
+  const base  = 'https://xeno-canto.org/api/3/recordings';
+  const parts = birdMeta.sciName.split(' ').filter(Boolean);
+  const genus = parts[0];
+  const sp    = parts[1] || '';
+
+  // Tag syntax characters (:, +) must stay literal in the URL
+  const queries = [
+    'gen:' + genus + '+sp:' + sp + '+type:song+grp:birds+q:A',
+    'gen:' + genus + '+sp:' + sp + '+type:song+grp:birds',
+    'gen:' + genus + '+sp:' + sp + '+grp:birds',
+  ];
+
+  for (const q of queries) {
+  const url = base + '?query=' + q + '&key=' + encodeURIComponent(key) + '&per_page=500';
+    let resp;
+    try {
+      resp = await fetch(url);
+    } catch (e) {
+      throw new Error('Network error: ' + e.message);
+    }
+    if (!resp.ok) {
+      const body = await resp.text().catch(() => '');
+      throw new Error('HTTP ' + resp.status + ': ' + body.slice(0, 120));
+    }
+    const data = await resp.json();
+    if (data.recordings && data.recordings.length > 0) {
+      const recordings = data.recordings.map(function(rec) {
+        return {
+          audioUrl: rec.file.startsWith('//') ? 'https:' + rec.file : rec.file,
+          credit:   'Recorded by ' + rec.rec + ' \u00b7 ' + rec.cnt,
+        };
+      });
+      return Object.assign({}, birdMeta, { recordings: recordings });
+    }
+  }
+  return null; // no recordings found
+}
+
+// =====================================================================
+// Session loading
+// =====================================================================
+
+async function loadSession() {
+  const pool = getCurrentPool();
+  if (!pool.length) { elSetupError.textContent = 'No birds in pool.'; return; }
+
+  const key = getApiKey();
+  if (!key) {
+    elSetupError.textContent = 'Please enter your Xeno-Canto API key in API Settings.';
+    elSettingsBody.style.display = '';
+    return;
+  }
+
+  const requested  = Math.max(1, parseInt(elCountInput.value) || 10);
+  selectedPool     = buildPool(requested);
+  if (selectedPool.length === 0) { elSetupError.textContent = 'No birds available.'; return; }
+  playIndex        = 0;
+  prefetchData     = null;
+  pendingFirstBird = null;
+  advancing        = false;
+  recordingQueues  = new Map(); // clear queues for fresh session
+
+  // Switch to play screen
+  elScreenSetup.style.display = 'none';
+  elScreenPlay.style.display  = '';
+  elProgress.textContent      = '';
+  elBirdName.textContent      = '';
+  elCredit.textContent        = '';
+  elCountdown.textContent     = '';
+  elPlayError.textContent     = '';
+  elBtnPlayPause.disabled     = true;
+  elBtnSkip.disabled          = true;
+  elBtnStart.style.display    = 'none';
+  elStatus.textContent        = 'Loading first bird\u2026';
+
+  // Fetch bird[0]; simultaneously start prefetch for bird[1]
+  var fetchFirst = fetchBirdXC(selectedPool[0]).catch(function() { return null; });
+  if (selectedPool.length > 1) {
+    prefetchData = {
+      promise:  fetchBirdXC(selectedPool[1]).catch(function() { return null; }),
+      forIndex: 1,
+    };
+  }
+
+  var firstBird = await fetchFirst;
+
+  if (!firstBird) {
+    elStatus.textContent    = 'Could not load first bird.';
+    elPlayError.textContent = 'No recordings found for "' + selectedPool[0].commonName + '". Click Skip to try the next one.';
+    elBtnSkip.disabled = false;
+    return;
+  }
+
+  pendingFirstBird         = firstBird;
+  elStatus.textContent     = selectedPool.length + ' bird' + (selectedPool.length !== 1 ? 's' : '') + ' ready.';
+  elBtnStart.style.display = '';
+}
+
+// =====================================================================
+// Playback
+// =====================================================================
+
+function playBird(birdData) {
+  var recording = pickRecording(birdData);
+
+  elProgress.textContent     = 'Bird ' + (playIndex + 1) + ' of ' + selectedPool.length;
+  elStatus.textContent       = 'Listen carefully\u2026';
+  elBirdName.textContent     = '';
+  elCredit.textContent       = '';
+  elCountdown.textContent    = '';
+  elPlayError.textContent    = '';
+  elBtnPlayPause.textContent = 'Pause';
+  elBtnPlayPause.disabled    = false;
+  elBtnSkip.disabled         = false;
+  isPaused = false;
+
+  player.src    = recording.audioUrl;
+  player.volume = parseFloat(elVolume.value);
+  player.play().catch(function(err) {
+    elPlayError.textContent = 'Playback error: ' + err.message;
+  });
+
+  clearTimeout(clipTimer);
+  clipTimer = setTimeout(function() {
+    player.pause();
+    revealBird(birdData, recording);
+  }, 30000);
+
+  player.onended = function() {
+    clearTimeout(clipTimer);
+    revealBird(birdData, recording);
+  };
+}
+
+function revealBird(birdData, recording) {
+  elBtnPlayPause.disabled = true;
+  elStatus.textContent    = 'That was:';
+  elBirdName.textContent  = birdData.commonName;
+  elCredit.textContent    = recording.credit;
+
+  if ('speechSynthesis' in window) {
+    var utt = new SpeechSynthesisUtterance(birdData.commonName);
+    utt.rate = 0.8;
+    window.speechSynthesis.speak(utt);
+  }
+
+  startCountdown(getPauseDuration(), advanceToNext);
+}
+
+async function advanceToNext() {
+  if (advancing) return;
+  advancing = true;
+  elBtnSkip.disabled      = true;
+  elBtnPlayPause.disabled = true;
+
+  // Advance index; reshuffle on wrap-around
+  var nextIndex = (playIndex + 1) % selectedPool.length;
+  if (nextIndex === 0) {
+    shuffle(selectedPool);
+    prefetchData = null;
+  }
+  playIndex = nextIndex;
+
+  // Use prefetched data if available for this index
+  var bird = null;
+  if (prefetchData && prefetchData.forIndex === playIndex) {
+    elStatus.textContent = 'Loading\u2026';
+    bird = await prefetchData.promise;
+    prefetchData = null;
+  }
+  if (!bird) {
+    elStatus.textContent = 'Loading\u2026';
+    bird = await fetchBirdXC(selectedPool[playIndex]).catch(function() { return null; });
+  }
+
+  // Always start prefetch for the bird after this one
+  var afterIndex = (playIndex + 1) % selectedPool.length;
+  if (!prefetchData || prefetchData.forIndex !== afterIndex) {
+    prefetchData = {
+      promise:  fetchBirdXC(selectedPool[afterIndex]).catch(function() { return null; }),
+      forIndex: afterIndex,
+    };
+  }
+
+  advancing = false;
+
+  if (!bird) {
+    elPlayError.textContent = 'No recordings for "' + selectedPool[playIndex].commonName + '". Skipping\u2026';
+    setTimeout(advanceToNext, 1500);
+    return;
+  }
+
+  elPlayError.textContent = '';
+  playBird(bird);
+}
+
+function startCountdown(seconds, callback) {
+  clearTimeout(countdownTimer);
+  var remaining = seconds;
+
+  (function tick() {
+    elCountdown.textContent = 'Next bird in ' + remaining + '\u2026';
+    if (remaining <= 0) {
+      elCountdown.textContent = '';
+      callback();
+      return;
+    }
+    remaining--;
+    countdownTimer = setTimeout(tick, 1000);
+  })();
+}
+
+// =====================================================================
+// Setup event handlers
+// =====================================================================
+
+elUploadArea.addEventListener('click', function() { elFileInput.click(); });
+
+elFileInput.addEventListener('change', function(e) {
+  if (e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+elUploadArea.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  elUploadArea.classList.add('drag-over');
+});
+elUploadArea.addEventListener('dragleave', function() {
+  elUploadArea.classList.remove('drag-over');
+});
+elUploadArea.addEventListener('drop', function(e) {
+  e.preventDefault();
+  elUploadArea.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+
+function handleFile(file) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    parsedBirds = parseEbirdFile(e.target.result);
+    if (parsedBirds.length === 0) {
+      elSetupError.textContent = 'Could not parse any species. Make sure this is an eBird barchart export (.txt).';
+      return;
+    }
+    elSetupError.textContent = '';
+    elUploadArea.classList.add('loaded');
+    elUploadText.style.display     = 'none';
+    elUploadFilename.style.display = '';
+    elUploadFilename.textContent   = '\u2713 ' + file.name + ' \u2014 ' + parsedBirds.length + ' species';
+    recomputeClassification();
+  };
+  reader.readAsText(file);
+}
+
+function recomputeClassification() {
+  if (!parsedBirds.length || !elDateInput.value) return;
+  var colIdx = dateToColumnIndex(elDateInput.value);
+  classified = classifyBirds(parsedBirds, colIdx);
+  elFilterSection.style.display = '';
+  updatePoolInfo();
+}
+
+elDateInput.addEventListener('change', recomputeClassification);
+elCategorySelect.addEventListener('change', updatePoolInfo);
+elCountInput.addEventListener('input', updatePoolInfo);
+
+elSettingsToggle.addEventListener('click', function() {
+  elSettingsBody.style.display = elSettingsBody.style.display !== 'none' ? 'none' : '';
+});
+
+elApiKeyInput.value = localStorage.getItem('xcApiKey') || '';
+elApiKeyInput.addEventListener('input', function() {
+  localStorage.setItem('xcApiKey', elApiKeyInput.value.trim());
+  updatePoolInfo();
+});
+
+elPauseSlider.addEventListener('input', function() {
+  elPauseLabel.textContent = elPauseSlider.value + 's';
+});
+
+elBtnLoad.addEventListener('click', loadSession);
+
+elLocationSelect.addEventListener('change', async function() {
+  var url = elLocationSelect.value;
+  if (!url) return;
+  elSetupError.textContent = '';
+  try {
+    var resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    var text = await resp.text();
+    var label = elLocationSelect.options[elLocationSelect.selectedIndex].textContent;
+    parsedBirds = parseEbirdFile(text);
+    if (parsedBirds.length === 0) {
+      elSetupError.textContent = 'Could not parse any species from this file.';
+      return;
+    }
+    elUploadArea.classList.add('loaded');
+    elUploadText.style.display     = 'none';
+    elUploadFilename.style.display = '';
+    elUploadFilename.textContent   = '\u2713 ' + label + ' \u2014 ' + parsedBirds.length + ' species';
+    recomputeClassification();
+  } catch (e) {
+    elSetupError.textContent = 'Could not load location file: ' + e.message;
+  }
+});
+
+// =====================================================================
+// Play screen event handlers
+// =====================================================================
+
+elBtnBack.addEventListener('click', function() {
+  clearTimeout(clipTimer);
+  clearTimeout(countdownTimer);
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  player.pause();
+  player.onended = null;
+  prefetchData     = null;
+  pendingFirstBird = null;
+  advancing        = false;
+  elScreenPlay.style.display  = 'none';
+  elScreenSetup.style.display = '';
+  updatePoolInfo();
+});
+
+elBtnStart.addEventListener('click', function() {
+  elBtnStart.style.display = 'none';
+  elPlayError.textContent  = '';
+  if (pendingFirstBird) {
+    var bird     = pendingFirstBird;
+    pendingFirstBird = null;
+    // Ensure prefetch for bird[1] is running
+    if (selectedPool.length > 1 && (!prefetchData || prefetchData.forIndex !== 1)) {
+      prefetchData = {
+        promise:  fetchBirdXC(selectedPool[1]).catch(function() { return null; }),
+        forIndex: 1,
+      };
+    }
+    playBird(bird);
+  } else {
+    advanceToNext();
+  }
+});
+
+elBtnPlayPause.addEventListener('click', function() {
+  if (isPaused) {
+    player.play();
+    isPaused = false;
+    elBtnPlayPause.textContent = 'Pause';
+  } else {
+    player.pause();
+    isPaused = true;
+    elBtnPlayPause.textContent = 'Play';
+  }
+});
+
+elBtnSkip.addEventListener('click', function() {
+  clearTimeout(clipTimer);
+  clearTimeout(countdownTimer);
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  player.pause();
+  player.onended = null;
+  advancing = false;
+  advanceToNext();
+});
+
+elVolume.addEventListener('input', function() {
+  player.volume = parseFloat(elVolume.value);
+});
+
+// =====================================================================
+// Init
+// =====================================================================
+
+elDateInput.value        = new Date().toISOString().split('T')[0];
+elPauseLabel.textContent = elPauseSlider.value + 's';
+
+if (!localStorage.getItem('xcApiKey')) {
+  elSettingsBody.style.display = '';
+}
+
+(async function loadLocationList() {
+  try {
+    var resp = await fetch('https://api.github.com/repos/deusy/deusy.github.io/contents/Birdsounder/Locations');
+    if (!resp.ok) return;
+    var files = await resp.json();
+    files
+      .filter(function(f) { return f.type === 'file' && f.name.endsWith('.txt'); })
+      .sort(function(a, b) { return a.name.localeCompare(b.name); })
+      .forEach(function(f) {
+        var opt = document.createElement('option');
+        opt.value = f.download_url;
+        opt.textContent = f.name.replace(/\.txt$/i, '');
+        elLocationSelect.appendChild(opt);
+      });
+  } catch (e) {
+    // silently fail — manual upload still works
+  }
+})();
+</script>
+
+</body>
+</html>
