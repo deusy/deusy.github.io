@@ -14,9 +14,9 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: stretch;
       justify-content: flex-start;
-      padding: 32px 24px;
+      padding: 0;
     }
 
     h1 {
@@ -29,11 +29,11 @@
 
     .card {
       background: #243324;
-      border-radius: 16px;
+      border-radius: 0;
       padding: 32px 36px;
       width: 100%;
-      max-width: 500px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      max-width: none;
+      box-shadow: none;
     }
 
     /* ── Upload area ──────────────────────── */
@@ -137,12 +137,13 @@
       letter-spacing: 0.1em; margin-bottom: 10px; text-align: center;
     }
     #timer-bar-wrap {
-      width: 100%; background: #1a2a1a; border-radius: 4px;
+      width: 100%; background: #1a2a1a; border-radius: 0 0 4px 4px;
       height: 6px; margin-bottom: 16px; overflow: hidden;
+      border: 1px solid #3a5a2a; border-top: none;
     }
     #timer-bar {
       height: 100%; width: 0%; background: #8fbe5a;
-      border-radius: 4px; transition: none;
+      border-radius: 0; transition: none;
     }
     #status {
       font-size: 1.05rem; color: #9ac878; text-align: center;
@@ -157,11 +158,12 @@
       min-height: 1.1em; margin-bottom: 12px;
     }
     #sonogram {
-      text-align: center; margin-bottom: 16px; min-height: 0;
+      margin-bottom: 0; min-height: 0;
+      overflow: hidden; border-radius: 6px 6px 0 0;
+      border: 1px solid #3a5a2a; border-bottom: none;
     }
     #sonogram img {
-      max-width: 100%; border-radius: 6px; opacity: 0.85;
-      border: 1px solid #3a5a2a;
+      display: block; width: 100%; opacity: 0.85;
     }
     #countdown {
       font-size: 0.95rem; color: #6a9a4a; text-align: center;
@@ -273,8 +275,15 @@
     <div class="form-group">
       <label>Pause between birds</label>
       <div class="slider-row">
-        <input type="range" id="pause-slider" min="1" max="10" step="1" value="3">
-        <span id="pause-label">3s</span>
+        <input type="range" id="pause-slider" min="1" max="10" step="1" value="5">
+        <span id="pause-label">5s</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Clip duration</label>
+      <div class="slider-row">
+        <input type="range" id="clip-slider" min="5" max="60" step="5" value="30">
+        <span id="clip-label">30s</span>
       </div>
     </div>
   </div>
@@ -335,6 +344,8 @@ const elSettingsBody   = document.getElementById('settings-body');
 const elApiKeyInput    = document.getElementById('api-key-input');
 const elPauseSlider    = document.getElementById('pause-slider');
 const elPauseLabel     = document.getElementById('pause-label');
+const elClipSlider     = document.getElementById('clip-slider');
+const elClipLabel      = document.getElementById('clip-label');
 const elBtnLoad        = document.getElementById('btn-load');
 const elSetupError     = document.getElementById('setup-error');
 
@@ -371,6 +382,8 @@ let clipTimer        = null;
 let timerRaf         = null;
 let isPaused         = false;
 let advancing        = false;
+let nextSonogramReady = null; // Promise resolved when next bird's sonogram is cached
+let nextPreloadedImg  = null; // Pre-decoded img element ready to insert
 
 // Per-bird shuffled queues so every recording is heard before any repeats
 var recordingQueues = new Map();
@@ -433,6 +446,10 @@ function getApiKey() {
 
 function getPauseDuration() {
   return parseInt(elPauseSlider.value, 10);
+}
+
+function getClipDuration() {
+  return parseInt(elClipSlider.value, 10);
 }
 
 // =====================================================================
@@ -637,7 +654,7 @@ async function fetchBirdXC(birdMeta) {
   const recordings = allRecs.map(function(rec) {
     return {
       audioUrl: rec.file.startsWith('//') ? 'https:' + rec.file : rec.file,
-      sonogram: rec.sono && rec.sono.med ? (rec.sono.med.startsWith('//') ? 'https:' + rec.sono.med : rec.sono.med) : null,
+      sonogram: rec.sono && rec.sono.large ? (rec.sono.large.startsWith('//') ? 'https:' + rec.sono.large : rec.sono.large) : null,
       quality:  rec.q || '?',
       credit:   'Recorded by ' + rec.rec + ' \u00b7 ' + rec.cnt + ' (\u2605' + (rec.q || '?') + ')',
       length:   (function(s) { var p = (s||'').split(':'); return p.length === 2 ? parseInt(p[0],10)*60 + parseFloat(p[1]) : parseFloat(s) || 0; })(rec['length']),
@@ -723,11 +740,23 @@ function playBird(birdData) {
   isPaused = false;
 
   if (recording.sonogram) {
-    var img = document.createElement('img');
-    img.src = recording.sonogram;
+    var img;
+    if (nextPreloadedImg && nextPreloadedImg.src === recording.sonogram) {
+      img = nextPreloadedImg;   // reuse the already-decoded element
+    } else {
+      img = new Image();
+      img.src = recording.sonogram;
+    }
+    nextPreloadedImg = null;
     img.alt = '';
+    img.style.width = '100%';
     elSonogram.innerHTML = '';
     elSonogram.appendChild(img);
+    // Scale image width so only the first N seconds is visible (cropped by overflow:hidden)
+    var clipDur = recording.length || 0;
+    if (clipDur > getClipDuration()) {
+      img.style.width = (clipDur / getClipDuration() * 100).toFixed(2) + '%';
+    }
   } else {
     elSonogram.innerHTML = '';
   }
@@ -738,16 +767,14 @@ function playBird(birdData) {
     elPlayError.textContent = 'Playback error: ' + err.message;
   });
 
-  // Animate progress bar — prefer metadata length, fall back to player.duration
-  var recDur = recording.length || 0;
+  // Animate progress bar — 0→100% over min(duration, clip setting) seconds
+  var MAX_SECS = Math.min(recording.length || getClipDuration(), getClipDuration());
+  elTimerBar.style.transition = 'none';
   elTimerBar.style.width = '0%';
   cancelAnimationFrame(timerRaf);
   (function tick() {
     if (!isPaused) {
-      var dur = recDur > 0 ? recDur : (isFinite(player.duration) ? player.duration : 0);
-      if (dur > 0) {
-        elTimerBar.style.width = (player.currentTime / dur * 100) + '%';
-      }
+      elTimerBar.style.width = Math.min(player.currentTime / MAX_SECS, 1) * 100 + '%';
     }
     timerRaf = requestAnimationFrame(tick);
   })();
@@ -756,7 +783,7 @@ function playBird(birdData) {
   clipTimer = setTimeout(function() {
     player.pause();
     revealBird(birdData, recording);
-  }, 30000);
+  }, getClipDuration() * 1000);
 
   player.onended = function() {
     clearTimeout(clipTimer);
@@ -766,7 +793,9 @@ function playBird(birdData) {
 
 function revealBird(birdData, recording) {
   cancelAnimationFrame(timerRaf);
+  elTimerBar.style.transition = 'width 0.3s linear';
   elTimerBar.style.width = '100%';
+  setTimeout(function() { elTimerBar.style.transition = 'none'; }, 350);
   elBtnPlayPause.disabled = true;
   elStatus.textContent    = 'That was:';
   elBirdName.textContent  = birdData.commonName;
@@ -780,6 +809,29 @@ function revealBird(birdData, recording) {
   }
 
   startCountdown(getPauseDuration(), advanceToNext);
+
+  // Kick off next sonogram fetch + decode immediately so it's ready before playback starts
+  var nextIdx = (playIndex + 1) % selectedPool.length;
+  var nextBird = selectedPool[nextIdx];
+  nextPreloadedImg = null;
+  nextSonogramReady = new Promise(function(resolve) {
+    if (!nextBird) { resolve(); return; }
+    var nextQueue = recordingQueues.get(nextBird.sciName);
+    var peekRec = nextQueue && nextQueue.length > 0
+      ? nextQueue[nextQueue.length - 1]
+      : (nextBird.recordings && nextBird.recordings[0]);
+    if (!peekRec || !peekRec.sonogram) { resolve(); return; }
+    var img = new Image();
+    img.src = peekRec.sonogram;
+    var tid = setTimeout(resolve, 5000);
+    var done = function() { clearTimeout(tid); resolve(); };
+    if (img.decode) {
+      img.decode().then(function() { nextPreloadedImg = img; done(); }).catch(done);
+    } else {
+      img.onload  = function() { nextPreloadedImg = img; done(); };
+      img.onerror = done;
+    }
+  });
 }
 
 function advanceToNext() {
@@ -795,7 +847,11 @@ function advanceToNext() {
 
   advancing = false;
   elPlayError.textContent = '';
-  playBird(selectedPool[playIndex]);
+
+  // Wait for the next sonogram to finish loading (started in revealBird)
+  var ready = nextSonogramReady || Promise.resolve();
+  nextSonogramReady = null;
+  ready.then(function() { playBird(selectedPool[playIndex]); });
 }
 
 function startCountdown(seconds, callback) {
@@ -864,8 +920,20 @@ function recomputeClassification() {
 }
 
 elDateInput.addEventListener('change', recomputeClassification);
-elCategorySelect.addEventListener('change', updatePoolInfo);
-elCountInput.addEventListener('input', updatePoolInfo);
+
+elCategorySelect.addEventListener('change', function() {
+  localStorage.setItem('category', elCategorySelect.value);
+  updatePoolInfo();
+});
+
+elCountInput.addEventListener('input', function() {
+  localStorage.setItem('birdCount', elCountInput.value);
+  updatePoolInfo();
+});
+
+elSoundTypeSelect.addEventListener('change', function() {
+  localStorage.setItem('soundType', elSoundTypeSelect.value);
+});
 
 elSettingsToggle.addEventListener('click', function() {
   elSettingsBody.style.display = elSettingsBody.style.display !== 'none' ? 'none' : '';
@@ -879,6 +947,12 @@ elApiKeyInput.addEventListener('input', function() {
 
 elPauseSlider.addEventListener('input', function() {
   elPauseLabel.textContent = elPauseSlider.value + 's';
+  localStorage.setItem('pauseDuration', elPauseSlider.value);
+});
+
+elClipSlider.addEventListener('input', function() {
+  elClipLabel.textContent = elClipSlider.value + 's';
+  localStorage.setItem('clipDuration', elClipSlider.value);
 });
 
 elBtnLoad.addEventListener('click', loadSession);
@@ -965,7 +1039,23 @@ elVolume.addEventListener('input', function() {
 // =====================================================================
 
 elDateInput.value        = new Date().toISOString().split('T')[0];
+
+// Restore persisted settings
+(function() {
+  var pause = localStorage.getItem('pauseDuration');
+  if (pause) { elPauseSlider.value = pause; }
+  var clip = localStorage.getItem('clipDuration');
+  if (clip) { elClipSlider.value = clip; }
+  var cat = localStorage.getItem('category');
+  if (cat) { elCategorySelect.value = cat; }
+  var count = localStorage.getItem('birdCount');
+  if (count) { elCountInput.value = count; }
+  var soundType = localStorage.getItem('soundType');
+  if (soundType) { elSoundTypeSelect.value = soundType; }
+})();
+
 elPauseLabel.textContent = elPauseSlider.value + 's';
+elClipLabel.textContent  = elClipSlider.value + 's';
 
 if (!localStorage.getItem('xcApiKey')) {
   elSettingsBody.style.display = '';
