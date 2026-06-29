@@ -9,8 +9,9 @@
 
     body {
       font-family: system-ui, -apple-system, sans-serif;
-      background: #1a2a1a;
-      color: #d4e8c2;
+      background:
+        url('https://cdn.download.ams.birds.cornell.edu/api/v1/asset/657355396/1800') center center / cover fixed;
+      color: #fff;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -19,16 +20,8 @@
       padding: 0;
     }
 
-    h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #8fbe5a;
-      margin-bottom: 24px;
-      letter-spacing: 0.04em;
-    }
-
     .card {
-      background: #243324;
+      background: none;
       border-radius: 0;
       padding: 32px 36px;
       width: 100%;
@@ -40,29 +33,35 @@
     .upload-area {
       border: 2px dashed #3a5a2a;
       border-radius: 10px;
-      padding: 28px 20px;
+      padding: 12px 16px;
       cursor: pointer;
       text-align: center;
       transition: border-color 0.2s, background 0.2s;
-      margin-bottom: 20px;
+      margin-bottom: 14px;
       user-select: none;
+      background: rgba(26, 42, 26, 0.84);
     }
     .upload-area:hover, .upload-area.drag-over {
       border-color: #8fbe5a;
       background: #1f2d1f;
     }
     .upload-area.loaded { border-color: #8fbe5a; border-style: solid; }
-    .upload-icon { font-size: 2rem; margin-bottom: 6px; }
-    .upload-text { font-size: 0.88rem; color: #8ab870; }
-    .upload-text small { color: #5a7a4a; }
-    .upload-filename { font-size: 0.85rem; color: #8fbe5a; font-weight: 600; margin-top: 6px; }
+    .upload-text { font-size: 0.82rem; color: #fff; }
+    .upload-text small { color: #fff; }
+    .upload-filename { font-size: 0.85rem; color: #fff; font-weight: 600; margin-top: 6px; }
 
     /* ── Form elements ────────────────────── */
-    .form-group { margin-bottom: 14px; text-align: left; }
+    .form-group {
+      margin-bottom: 14px; text-align: left;
+      background: rgba(26, 42, 26, 0.84);
+      border: 1px solid rgba(58, 90, 42, 0.8);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
     .form-group label {
       display: block;
       font-size: 0.73rem;
-      color: #6a9a4a;
+      color: #fff;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 5px;
@@ -75,7 +74,7 @@
       background: #1a2a1a;
       border: 1px solid #3a5a2a;
       border-radius: 7px;
-      color: #d4e8c2;
+      color: #fff;
       padding: 9px 12px;
       font-size: 0.93rem;
       font-family: inherit;
@@ -91,50 +90,59 @@
 
     /* ── Pool info ────────────────────────── */
     #pool-info {
-      background: #1a2a1a;
+      background: rgba(26, 42, 26, 0.84);
+      border: 1px solid rgba(58, 90, 42, 0.8);
       border-radius: 8px;
       padding: 10px 14px;
       font-size: 0.8rem;
-      color: #6a9a4a;
+      color: #fff;
       margin-bottom: 14px;
       text-align: left;
       line-height: 1.7;
     }
-    #pool-info strong { color: #8fbe5a; }
+    #pool-info strong { color: #fff; }
 
     /* ── Misc ─────────────────────────────── */
     .divider { border: none; border-top: 1px solid #2e4a2e; margin: 16px 0; }
 
     .link-btn {
-      background: none; border: none; color: #5a7a4a;
-      font-size: 0.8rem; cursor: pointer; text-decoration: underline;
-      padding: 0; font-family: inherit;
+      background: rgba(26, 42, 26, 0.84); border: 1px solid rgba(58, 90, 42, 0.8); color: #fff;
+      border-radius: 7px;
+      font-size: 1.0rem; cursor: pointer; text-decoration: none;
+      padding: 6px 9px; font-family: inherit;
     }
-    .link-btn:hover { color: #8fbe5a; }
+    .link-btn:hover { color: #fff; }
 
     .settings-body { margin-top: 12px; }
 
     .slider-row { display: flex; align-items: center; gap: 10px; }
-    .slider-row span { font-size: 0.88rem; color: #d4e8c2; min-width: 28px; }
+    .slider-row span { font-size: 0.88rem; color: #fff; min-width: 28px; }
     input[type=range] { accent-color: #8fbe5a; flex: 1; }
 
     .btn-primary {
       display: block; width: 100%; padding: 13px;
-      background: #4a7a3a; color: #d4e8c2; border: none; border-radius: 9px;
+      background: #4a7a3a; color: #fff; border: none; border-radius: 9px;
       font-size: 1rem; font-family: inherit; cursor: pointer; font-weight: 600;
       letter-spacing: 0.02em; transition: background 0.15s; margin-top: 8px;
     }
     .btn-primary:hover { background: #5a9a4a; }
-    .btn-primary:disabled { background: #2a3a2a; color: #4a6a4a; cursor: default; }
+    .btn-primary:disabled { background: #2a3a2a; color: #fff; cursor: default; }
 
-    .error-msg { color: #e87070; font-size: 0.83rem; margin-top: 10px; min-height: 1.2em; }
+    .error-msg {
+      color: #fff; font-size: 0.83rem; margin-top: 10px; min-height: 1.2em;
+      background: rgba(26, 42, 26, 0.84);
+      border: 1px solid rgba(58, 90, 42, 0.8);
+      border-radius: 8px;
+      padding: 6px 10px;
+    }
+    .error-msg:empty { display: none; }
 
     /* ── Play screen ──────────────────────── */
-    .back-btn { display: block; margin-bottom: 20px; }
+    #screen-play { padding-top: 12px; }
+    .back-btn { display: block; margin-bottom: 8px; text-decoration: none; }
 
     #progress {
-      font-size: 0.72rem; color: #5a8a4a; text-transform: uppercase;
-      letter-spacing: 0.1em; margin-bottom: 10px; text-align: center;
+      display: none;
     }
     #timer-bar-wrap {
       width: 100%; background: #1a2a1a; border-radius: 0 0 4px 4px;
@@ -146,32 +154,40 @@
       border-radius: 0; transition: none;
     }
     #status {
-      font-size: 1.05rem; color: #9ac878; text-align: center;
-      margin-bottom: 8px; min-height: 1.5em;
+      font-size: 1.9rem; font-weight: 700; color: #fff; text-align: center;
+      margin-bottom: 4px; min-height: 2.5rem;
+      background: rgba(26, 42, 26, 0.84);
+      border: 1px solid rgba(58, 90, 42, 0.8);
+      border-radius: 8px;
+      padding: 8px 12px;
     }
     #bird-name {
-      font-size: 1.9rem; font-weight: 700; color: #8fbe5a;
-      text-align: center; min-height: 2.5rem; margin-bottom: 6px;
+      display: none;
     }
     #credit {
-      font-size: 0.73rem; color: #4a6a4a; text-align: center;
-      min-height: 1.1em; margin-bottom: 12px;
+      display: none;
     }
     #sonogram {
-      margin-bottom: 0; min-height: 0;
+      margin-bottom: 0; height: 160px;
       overflow: hidden; border-radius: 6px 6px 0 0;
       border: 1px solid #3a5a2a; border-bottom: none;
     }
     #sonogram img {
-      display: block; width: 100%; opacity: 0.85;
+      display: block; width: 100%; height: 100%; opacity: 0.85;
+    }
+    #bird-photo-wrap {
+      display: none; text-align: center; margin-bottom: 12px;
+    }
+    #bird-photo {
+      max-width: 100%; max-height: 360px;
+      border-radius: 8px; border: 1px solid #3a5a2a; opacity: 0.92;
     }
     #countdown {
-      font-size: 0.95rem; color: #6a9a4a; text-align: center;
-      min-height: 1.4em; margin-bottom: 20px;
+      display: none;
     }
     #btn-start {
       display: block; width: 100%; padding: 14px;
-      background: #4a7a3a; color: #d4e8c2; border: none; border-radius: 9px;
+      background: #4a7a3a; color: #fff; border: none; border-radius: 9px;
       font-size: 1.05rem; font-family: inherit; cursor: pointer; font-weight: 600;
       transition: background 0.15s; margin-bottom: 16px;
     }
@@ -182,19 +198,31 @@
       align-items: center; flex-wrap: wrap;
     }
     .btn-control {
-      background: #3a5a2a; color: #d4e8c2; border: none; border-radius: 8px;
+      background: #3a5a2a; color: #fff; border: none; border-radius: 8px;
       padding: 10px 22px; font-size: 0.93rem; font-family: inherit;
       cursor: pointer; transition: background 0.15s;
     }
     .btn-control:hover { background: #4a7a3a; }
-    .btn-control:disabled { background: #2a3a2a; color: #5a7a4a; cursor: default; }
+    .btn-control:disabled { background: #2a3a2a; color: #fff; cursor: default; }
 
-    .volume-wrap { display: flex; align-items: center; gap: 8px; color: #6a9a4a; }
+    .volume-wrap {
+      display: flex; align-items: center; gap: 8px; color: #fff;
+      background: rgba(26, 42, 26, 0.84);
+      border: 1px solid rgba(58, 90, 42, 0.8);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
     .volume-wrap input { width: 80px; }
 
     .or-divider {
       display: flex; align-items: center; gap: 10px;
-      margin: 0 0 16px 0; color: #4a6a4a; font-size: 0.8rem;
+      margin: 0 0 16px 0; color: #fff; font-size: 0.8rem;
+    }
+    .or-divider span {
+      background: rgba(26, 42, 26, 0.84);
+      border: 1px solid rgba(58, 90, 42, 0.8);
+      border-radius: 999px;
+      padding: 4px 10px;
     }
     .or-divider::before, .or-divider::after {
       content: ''; flex: 1; border-top: 1px solid #2e4a2e;
@@ -202,13 +230,11 @@
 
     @media (max-width: 480px) {
       .card { padding: 24px 20px; }
-      #bird-name { font-size: 1.5rem; }
+      #status { font-size: 1.5rem; }
     }
   </style>
 </head>
 <body>
-
-<h1>Birdsounder</h1>
 
 <!-- ── Setup Screen ──────────────────────────────────────── -->
 <div id="screen-setup" class="card">
@@ -223,7 +249,6 @@
   <div class="or-divider"><span>or upload your own</span></div>
 
   <div id="upload-area" class="upload-area">
-    <div class="upload-icon">&#x1F426;</div>
     <div id="upload-text" class="upload-text">
       Drop eBird barchart .txt here<br><small>or click to browse</small>
     </div>
@@ -245,6 +270,9 @@
         <select id="category-select">
           <option value="common">Common only</option>
           <option value="commonAndUncommon" selected>Common &amp; Uncommon</option>
+          <option value="uncommon">Uncommon only</option>
+          <option value="uncommonAndRare">Uncommon &amp; Rare</option>
+          <option value="rare">Rare only</option>
           <option value="all">All present birds</option>
         </select>
       </div>
@@ -263,9 +291,12 @@
     </div>
   </div>
 
+  <button class="btn-primary" id="btn-load" disabled>Load &amp; Start &#x25B6;</button>
+  <div class="error-msg" id="setup-error"></div>
+
   <hr class="divider">
 
-  <button class="link-btn" id="settings-toggle">&#x2699; API Settings</button>
+  <button class="link-btn" id="settings-toggle">&#x2699; Settings</button>
   <div id="settings-body" class="settings-body" style="display:none">
     <div class="form-group" style="margin-top:12px">
       <label for="api-key-input">Xeno-Canto API Key</label>
@@ -286,24 +317,32 @@
         <span id="clip-label">30s</span>
       </div>
     </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="show-images-toggle" checked> Show bird photos
+      </label>
+    </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="announce-birds-toggle" checked> Announce bird names
+      </label>
+    </div>
   </div>
-
-  <button class="btn-primary" id="btn-load" disabled>Load &amp; Start &#x25B6;</button>
-  <div class="error-msg" id="setup-error"></div>
 
 </div>
 
 <!-- ── Play Screen ───────────────────────────────────────── -->
 <div id="screen-play" class="card" style="display:none">
 
-  <button class="link-btn back-btn" id="btn-back">&larr; New Session</button>
+  <button class="link-btn back-btn" id="btn-back">&larr; Back</button>
 
   <div id="status">Loading&hellip;</div>
   <div id="progress"></div>
   <div id="bird-name"></div>
-  <div id="credit"></div>
+  <div id="bird-photo-wrap"><img id="bird-photo" alt=""></div>
   <div id="sonogram"></div>
   <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+  <div id="credit"></div>
   <div id="countdown"></div>
 
   <button id="btn-start" style="display:none">&#x25B6; Start</button>
@@ -356,6 +395,10 @@ const elProgress      = document.getElementById('progress');
 const elStatus        = document.getElementById('status');
 const elBirdName      = document.getElementById('bird-name');
 const elCredit        = document.getElementById('credit');
+const elBirdPhotoWrap    = document.getElementById('bird-photo-wrap');
+const elBirdPhoto        = document.getElementById('bird-photo');
+const elShowImagesToggle = document.getElementById('show-images-toggle');
+const elAnnounceBirdsToggle = document.getElementById('announce-birds-toggle');
 const elTimerBar      = document.getElementById('timer-bar');
 const elSonogram      = document.getElementById('sonogram');
 const elCountdown     = document.getElementById('countdown');
@@ -382,8 +425,27 @@ let clipTimer        = null;
 let timerRaf         = null;
 let isPaused         = false;
 let advancing        = false;
+let currentBirdData  = null;
+let currentRecording = null;
+let isRevealed       = false;
 let nextSonogramReady = null; // Promise resolved when next bird's sonogram is cached
 let nextPreloadedImg  = null; // Pre-decoded img element ready to insert
+
+async function fetchWikipediaPhoto(commonName) {
+  try {
+    var resp = await fetch(
+      'https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json' +
+      '&piprop=thumbnail&pithumbsize=800&redirects&origin=*&titles=' +
+      encodeURIComponent(commonName)
+    );
+    if (!resp.ok) return null;
+    var data = await resp.json();
+    var pages = data.query && data.query.pages;
+    if (!pages) return null;
+    var page = Object.values(pages)[0];
+    return page && page.thumbnail ? page.thumbnail.source : null;
+  } catch(e) { return null; }
+}
 
 // Per-bird shuffled queues so every recording is heard before any repeats
 var recordingQueues = new Map();
@@ -506,7 +568,10 @@ function classifyBirds(birds, colIdx) {
   const nCommonAndUncommon = Math.max(nCommon, Math.ceil(n * 0.30));
   return {
     common:            withFreq.slice(0, nCommon),
+    uncommon:          withFreq.slice(nCommon, nCommonAndUncommon),
     commonAndUncommon: withFreq.slice(0, nCommonAndUncommon),
+    rare:              withFreq.slice(nCommonAndUncommon),
+    uncommonAndRare:   withFreq.slice(nCommon),
     all:               withFreq,
   };
 }
@@ -523,21 +588,35 @@ function buildPool(requested) {
 
   if (cat === 'common') {
     const primary   = shuffle(classified.common.slice());
-    const spill     = shuffle(
-      classified.commonAndUncommon.filter(b => !classified.common.includes(b))
-    );
-    const spillRare = shuffle(
-      classified.all.filter(b => !classified.commonAndUncommon.includes(b))
-    );
+    const spill     = shuffle(classified.uncommon.slice());
+    const spillRare = shuffle(classified.rare.slice());
     return primary.concat(spill).concat(spillRare).slice(0, requested);
   }
 
-  // commonAndUncommon
-  const primary = shuffle(classified.commonAndUncommon.slice());
-  const spill   = shuffle(
-    classified.all.filter(b => !classified.commonAndUncommon.includes(b))
-  );
-  return primary.concat(spill).slice(0, requested);
+  if (cat === 'commonAndUncommon') {
+    const primary = shuffle(classified.commonAndUncommon.slice());
+    const spill   = shuffle(classified.rare.slice());
+    return primary.concat(spill).slice(0, requested);
+  }
+
+  if (cat === 'uncommon') {
+    const primary   = shuffle(classified.uncommon.slice());
+    const spillRare = shuffle(classified.rare.slice());
+    const spillCommon = shuffle(classified.common.slice());
+    return primary.concat(spillRare).concat(spillCommon).slice(0, requested);
+  }
+
+  if (cat === 'uncommonAndRare') {
+    const primary = shuffle(classified.uncommonAndRare.slice());
+    const spill   = shuffle(classified.common.slice());
+    return primary.concat(spill).slice(0, requested);
+  }
+
+  // rare
+  const primary = shuffle(classified.rare.slice());
+  const spill   = shuffle(classified.uncommon.slice());
+  const spillCommon = shuffle(classified.common.slice());
+  return primary.concat(spill).concat(spillCommon).slice(0, requested);
 }
 
 function getCurrentPool() {
@@ -545,6 +624,9 @@ function getCurrentPool() {
   const cat = elCategorySelect.value;
   if (cat === 'common')            return classified.common;
   if (cat === 'commonAndUncommon') return classified.commonAndUncommon;
+  if (cat === 'uncommon')          return classified.uncommon;
+  if (cat === 'uncommonAndRare')   return classified.uncommonAndRare;
+  if (cat === 'rare')              return classified.rare;
   return classified.all;
 }
 
@@ -565,11 +647,24 @@ function updatePoolInfo() {
   if (cat === 'common' && requested > nCommon && nCommon > 0) {
     const fromUncommon = Math.min(requested - nCommon, nUncommon);
     const fromRare     = Math.max(0, requested - nCommon - nUncommon);
-    spillNote = ' <span style="color:#8fbe5a">(+' + fromUncommon + ' uncommon' +
+    spillNote = ' <span style="color:#fff">(+' + fromUncommon + ' uncommon' +
       (fromRare > 0 ? ', +' + fromRare + ' rare' : '') + ')</span>';
   } else if (cat === 'commonAndUncommon' && requested > nCommon + nUncommon) {
     const fromRare = Math.min(requested - nCommon - nUncommon, nRare);
-    if (fromRare > 0) spillNote = ' <span style="color:#8fbe5a">(+' + fromRare + ' rare)</span>';
+    if (fromRare > 0) spillNote = ' <span style="color:#fff">(+' + fromRare + ' rare)</span>';
+  } else if (cat === 'uncommon' && requested > nUncommon && nUncommon > 0) {
+    const fromRare   = Math.min(requested - nUncommon, nRare);
+    const fromCommon = Math.max(0, requested - nUncommon - nRare);
+    spillNote = ' <span style="color:#fff">(+' + fromRare + ' rare' +
+      (fromCommon > 0 ? ', +' + fromCommon + ' common' : '') + ')</span>';
+  } else if (cat === 'uncommonAndRare' && requested > nUncommon + nRare) {
+    const fromCommon = Math.min(requested - nUncommon - nRare, nCommon);
+    if (fromCommon > 0) spillNote = ' <span style="color:#fff">(+' + fromCommon + ' common)</span>';
+  } else if (cat === 'rare' && requested > nRare && nRare > 0) {
+    const fromUncommon = Math.min(requested - nRare, nUncommon);
+    const fromCommon   = Math.max(0, requested - nRare - nUncommon);
+    spillNote = ' <span style="color:#fff">(+' + fromUncommon + ' uncommon' +
+      (fromCommon > 0 ? ', +' + fromCommon + ' common' : '') + ')</span>';
   }
 
   const [, month, day] = elDateInput.value.split('-').map(Number);
@@ -586,7 +681,7 @@ function updatePoolInfo() {
   elBtnLoad.disabled = classified.all.length === 0 || !hasKey;
 
   if (!hasKey) {
-    elSetupError.textContent = 'Enter your Xeno-Canto API key in API Settings below.';
+    elSetupError.textContent = 'Enter your Xeno-Canto API key in Settings below.';
     elSettingsBody.style.display = '';
   } else {
     elSetupError.textContent = '';
@@ -674,7 +769,7 @@ async function loadSession() {
 
   const key = getApiKey();
   if (!key) {
-    elSetupError.textContent = 'Please enter your Xeno-Canto API key in API Settings.';
+    elSetupError.textContent = 'Please enter your Xeno-Canto API key in Settings.';
     elSettingsBody.style.display = '';
     return;
   }
@@ -695,6 +790,8 @@ async function loadSession() {
   elProgress.textContent      = '';
   elBirdName.textContent      = '';
   elCredit.textContent        = '';
+  elBirdPhotoWrap.style.display = 'none';
+  elBirdPhoto.src             = '';
   elSonogram.innerHTML        = '';
   elTimerBar.style.width      = '0%';
   cancelAnimationFrame(timerRaf);
@@ -713,12 +810,12 @@ async function loadSession() {
 
   if (selectedPool.length === 0) {
     elStatus.textContent    = 'No recordings found.';
-    elPlayError.textContent = 'None of the selected birds have available recordings. Try a different category or location.';
+    elPlayError.textContent = 'There is a problem with your Xeno-Canto API key, no results were returned.';
     return;
   }
 
   elStatus.textContent     = selectedPool.length + ' bird' + (selectedPool.length !== 1 ? 's' : '') + ' ready.';
-  elBtnStart.style.display = '';
+  playBird(selectedPool[0]);
 }
 
 // =====================================================================
@@ -727,12 +824,22 @@ async function loadSession() {
 
 function playBird(birdData) {
   var recording = pickRecording(birdData);
+  currentBirdData  = birdData;
+  currentRecording = recording;
+  isRevealed       = false;
 
-  elProgress.textContent     = 'Bird ' + (playIndex + 1) + ' of ' + selectedPool.length;
-  elStatus.textContent       = 'Listen carefully\u2026';
-  elBirdName.textContent     = '';
-  elCredit.textContent       = '';
-  elCountdown.textContent    = '';
+  elProgress.textContent     = '';
+  elStatus.textContent       = 'Bird ' + (playIndex + 1) + ' of ' + selectedPool.length;
+  elBirdName.textContent       = '';
+  elCredit.textContent         = '';
+  elBirdPhotoWrap.style.display = 'none';
+  elBirdPhoto.src               = '';
+  if (elShowImagesToggle.checked) {
+    fetchWikipediaPhoto(birdData.sciName).then(function(url) {
+      if (url) { elBirdPhoto.src = url; elBirdPhotoWrap.style.display = 'block'; }
+    });
+  }
+  elCountdown.textContent      = '';
   elPlayError.textContent    = '';
   elBtnPlayPause.textContent = 'Pause';
   elBtnPlayPause.disabled    = false;
@@ -752,7 +859,7 @@ function playBird(birdData) {
     img.style.width = '100%';
     elSonogram.innerHTML = '';
     elSonogram.appendChild(img);
-    // Scale image width so only the first N seconds is visible (cropped by overflow:hidden)
+    // Scale only horizontally so the visible width maps exactly to the clip duration.
     var clipDur = recording.length || 0;
     if (clipDur > getClipDuration()) {
       img.style.width = (clipDur / getClipDuration() * 100).toFixed(2) + '%';
@@ -767,23 +874,24 @@ function playBird(birdData) {
     elPlayError.textContent = 'Playback error: ' + err.message;
   });
 
-  // Animate progress bar — 0→100% over min(duration, clip setting) seconds
+  // Animate progress bar over actual audio playback time.
   var MAX_SECS = Math.min(recording.length || getClipDuration(), getClipDuration());
   elTimerBar.style.transition = 'none';
   elTimerBar.style.width = '0%';
+  clearTimeout(clipTimer);
   cancelAnimationFrame(timerRaf);
   (function tick() {
-    if (!isPaused) {
-      elTimerBar.style.width = Math.min(player.currentTime / MAX_SECS, 1) * 100 + '%';
+    if (!isRevealed) {
+      var progress = Math.min(player.currentTime / MAX_SECS, 1);
+      elTimerBar.style.width = progress * 100 + '%';
+      if (player.currentTime >= MAX_SECS) {
+        player.pause();
+        revealBird(birdData, recording);
+        return;
+      }
     }
     timerRaf = requestAnimationFrame(tick);
   })();
-
-  clearTimeout(clipTimer);
-  clipTimer = setTimeout(function() {
-    player.pause();
-    revealBird(birdData, recording);
-  }, getClipDuration() * 1000);
 
   player.onended = function() {
     clearTimeout(clipTimer);
@@ -792,17 +900,18 @@ function playBird(birdData) {
 }
 
 function revealBird(birdData, recording) {
+  if (isRevealed) return;
+  isRevealed = true;
   cancelAnimationFrame(timerRaf);
   elTimerBar.style.transition = 'width 0.3s linear';
   elTimerBar.style.width = '100%';
   setTimeout(function() { elTimerBar.style.transition = 'none'; }, 350);
   elBtnPlayPause.disabled = true;
-  elStatus.textContent    = 'That was:';
-  elBirdName.textContent  = birdData.commonName;
-  elCredit.textContent    = recording.credit;
-  // sonogram already visible from playBird — leave it in place
+  elStatus.textContent    = birdData.commonName;
+  elBirdName.textContent       = '';
+  elCredit.textContent         = '';
 
-  if ('speechSynthesis' in window) {
+  if (elAnnounceBirdsToggle.checked && 'speechSynthesis' in window) {
     var utt = new SpeechSynthesisUtterance(birdData.commonName);
     utt.rate = 0.8;
     window.speechSynthesis.speak(utt);
@@ -859,9 +968,7 @@ function startCountdown(seconds, callback) {
   var remaining = seconds;
 
   (function tick() {
-    elCountdown.textContent = 'Next bird in ' + remaining + '\u2026';
     if (remaining <= 0) {
-      elCountdown.textContent = '';
       callback();
       return;
     }
@@ -955,6 +1062,14 @@ elClipSlider.addEventListener('input', function() {
   localStorage.setItem('clipDuration', elClipSlider.value);
 });
 
+elShowImagesToggle.addEventListener('change', function() {
+  localStorage.setItem('showImages', elShowImagesToggle.checked);
+});
+
+elAnnounceBirdsToggle.addEventListener('change', function() {
+  localStorage.setItem('announceBirds', elAnnounceBirdsToggle.checked);
+});
+
 elBtnLoad.addEventListener('click', loadSession);
 
 elLocationSelect.addEventListener('change', async function() {
@@ -1021,13 +1136,23 @@ elBtnPlayPause.addEventListener('click', function() {
 });
 
 elBtnSkip.addEventListener('click', function() {
-  clearTimeout(clipTimer);
-  clearTimeout(countdownTimer);
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
-  player.pause();
-  player.onended = null;
-  advancing = false;
-  advanceToNext();
+  if (!isRevealed && currentBirdData && currentRecording) {
+    // First skip: reveal the current bird
+    clearTimeout(clipTimer);
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    player.pause();
+    player.onended = null;
+    revealBird(currentBirdData, currentRecording);
+  } else {
+    // Already revealed: jump to next
+    clearTimeout(clipTimer);
+    clearTimeout(countdownTimer);
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    player.pause();
+    player.onended = null;
+    advancing = false;
+    advanceToNext();
+  }
 });
 
 elVolume.addEventListener('input', function() {
@@ -1052,6 +1177,10 @@ elDateInput.value        = new Date().toISOString().split('T')[0];
   if (count) { elCountInput.value = count; }
   var soundType = localStorage.getItem('soundType');
   if (soundType) { elSoundTypeSelect.value = soundType; }
+  var showImages = localStorage.getItem('showImages');
+  if (showImages !== null) { elShowImagesToggle.checked = showImages === 'true'; }
+  var announceBirds = localStorage.getItem('announceBirds');
+  if (announceBirds !== null) { elAnnounceBirdsToggle.checked = announceBirds === 'true'; }
 })();
 
 elPauseLabel.textContent = elPauseSlider.value + 's';
